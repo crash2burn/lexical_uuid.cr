@@ -8,14 +8,14 @@ Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
-  lexical_uuid.cr:
+  lexical_uuid:
     github: crash2burn/lexical_uuid.cr
 ```
 
 ## Usage
 
 ```crystal
-require "lexical_uuid.cr"
+require "lexical_uuid"
 
 uuid = LexicalUUID::UUID.new
 puts uuid.to_guid #=> "00056e19-aa1e-2c81-33b7-7ccf993414bd"

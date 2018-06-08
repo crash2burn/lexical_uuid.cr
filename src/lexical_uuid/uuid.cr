@@ -12,7 +12,7 @@ struct LexicalUUID::UUID
     @@worker_id
   end
 
-  def self.create_worker_id : UInt64
+  def self.create_worker_id
     fqdn = System.hostname
     pid = Process.pid
     CrystalFnv::Hash.fnv_1a("#{fqdn}-#{pid}", size: 64).to_u64
