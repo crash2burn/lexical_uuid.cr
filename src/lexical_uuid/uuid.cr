@@ -3,7 +3,7 @@ require "./increasing_microsecond_clock.cr"
 require "system"
 require "crystal_fnv"
 
-class LexicalUUID::UUID
+struct LexicalUUID::UUID
   @@worker_id : UInt64 = create_worker_id
   property worker_id : UInt64
   property timestamp : UInt64
@@ -18,29 +18,22 @@ class LexicalUUID::UUID
     CrystalFnv::Hash.fnv_1a("#{fqdn}-#{pid}", size: 64).to_u64
   end
 
-  def initialize(timestamp : UInt64, worker_id : UInt64 = self.class.worker_id)
-    @worker_id = worker_id
-    @timestamp = timestamp
-  end
-
   def initialize(bytes : IO)
-    @worker_id = self.class.worker_id
-    @timestamp = LexicalUUID::IncreasingMicrosecondClock.call
-
-    from_bytes(bytes)
+    @timestamp, @worker_id = from_bytes(bytes)
   end
 
-  def initialize(bytes : String = "")
-    @worker_id = self.class.worker_id
-    @timestamp = LexicalUUID::IncreasingMicrosecondClock.call
+  def initialize(bytes : String)
+    raise Exception.new("ArgumentError") if bytes.size != 36
 
-    case bytes.size
-    when 0
-    when 36
-      from_guid(bytes)
-    else
-      raise Exception.new("ArgumentError")
-    end
+    @timestamp, @worker_id = from_guid(bytes)
+  end
+
+  def initialize(@timestamp : UInt64, @worker_id : UInt64 = self.class.worker_id)
+  end
+
+  def initialize
+    @worker_id = self.class.worker_id
+    @timestamp = IncreasingMicrosecondClock.call
   end
 
   def to_byte_array
@@ -68,10 +61,24 @@ class LexicalUUID::UUID
     "%08x-%04x-%04x-%04x-%04x%08x" % self.to_byte_array
   end
 
+  def from_bytes(io)
+    time_high = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+    time_low = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+    worker_high = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+    worker_low = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+
+    timestamp = ((time_high.to_u64 << 32) | time_low).to_u64
+    worker_id = ((worker_high.to_u64 << 32) | worker_low).to_u64
+
+    return timestamp, worker_id
+  end
+
   def from_guid(guid)
     split = guid.split("-")
-    @timestamp = "#{split[0]}#{split[1]}#{split[2]}".to_u64(16)
-    @worker_id = "#{split[3]}#{split[4]}".to_u64(16)
+    timestamp = "#{split[0]}#{split[1]}#{split[2]}".to_u64(16)
+    worker_id = "#{split[3]}#{split[4]}".to_u64(16)
+
+    return timestamp, worker_id
   end
 
   def <=>(other)
@@ -90,15 +97,5 @@ class LexicalUUID::UUID
 
   def hash
     to_bytes.to_s.hash
-  end
-
-  def from_bytes(io)
-    time_high = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
-    time_low = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
-    worker_high = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
-    worker_low = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
-
-    @timestamp = ((time_high.to_u64 << 32) | time_low).to_u64
-    @worker_id = ((worker_high.to_u64 << 32) | worker_low).to_u64
   end
 end

@@ -1,6 +1,6 @@
 # lexical_uuid.cr
 
-This is a port of ruby's LexicalUUID. It provides a way to go to and from ORDERED v1 UUIDS.
+This is a port of the ruby library [lexical_uuid](https://github.com/jamesgolick/lexical_uuid). It provides a way to go to and from ORDERED v1 UUIDS.
 
 ## Installation
 
@@ -27,7 +27,6 @@ from_guid = LexicalUUID::UUID.new(uuid.to_guid)
 puts from_guid.to_guid #=> "00056e19-aa1e-2c81-33b7-7ccf993414bd"
 ```
 
-
 ## Contributing
 
 1. Fork it ( https://github.com/crash2burn/lexical_uuid.cr/fork )
@@ -35,6 +34,9 @@ puts from_guid.to_guid #=> "00056e19-aa1e-2c81-33b7-7ccf993414bd"
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
 5. Create a new Pull Request
+
+## Thanks
+* [James Golick's](https://github.com/jamesgolick) [lexical_uuid](https://github.com/jamesgolick/lexical_uuid)
 
 ## Contributors
 
