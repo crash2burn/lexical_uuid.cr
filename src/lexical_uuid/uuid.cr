@@ -18,7 +18,7 @@ struct LexicalUUID::UUID
     CrystalFnv::Hash.fnv_1a("#{fqdn}-#{pid}", size: 64).to_u64
   end
 
-  def initialize(bytes : IO)
+  def initialize(bytes : Bytes)
     @timestamp, @worker_id = from_bytes(bytes)
   end
 
@@ -39,11 +39,11 @@ struct LexicalUUID::UUID
   def to_byte_array
     [
       (timestamp >> 32).to_u32,
-      ((timestamp & 0xffffffff) >> 16).to_u16,
-      ((timestamp & 0xffffffff)).to_u16,
+      (timestamp >> 16).to_u16,
+      timestamp.to_u16,
       (worker_id >> 48).to_u16,
       (worker_id >> 32).to_u16,
-      (worker_id & 0xffffffff).to_u32,
+      worker_id.to_u32,
     ]
   end
 
@@ -54,14 +54,16 @@ struct LexicalUUID::UUID
       io.write_bytes(i, IO::ByteFormat::BigEndian)
     end
 
-    io.rewind
+    io.to_slice
   end
 
   def to_guid
     "%08x-%04x-%04x-%04x-%04x%08x" % self.to_byte_array
   end
 
-  def from_bytes(io)
+  def from_bytes(bytes)
+    io = IO::Memory.new(bytes)
+
     time_high = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
     time_low = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
     worker_high = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
@@ -96,6 +98,6 @@ struct LexicalUUID::UUID
   end
 
   def hash
-    to_bytes.to_s.hash
+    to_bytes.hash
   end
 end

@@ -26,7 +26,7 @@ describe LexicalUUID do
         io.write_bytes(i, IO::ByteFormat::BigEndian)
       end
 
-      uuid = LexicalUUID::UUID.new(io.rewind)
+      uuid = LexicalUUID::UUID.new(io.to_slice)
 
       it "correctly extracts the timestamp" do
         uuid.timestamp.should eq 1234567890
